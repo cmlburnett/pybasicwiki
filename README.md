@@ -41,4 +41,5 @@ Supported syntax:
 - =====H5 header=====
 - [[Link to a page]]
 - [[Link to a page|Short text]]
+- ---- (a horizontal rule)
 

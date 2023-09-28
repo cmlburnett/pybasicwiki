@@ -27,6 +27,9 @@ class HTMLFormatter:
 	def bolditalic(self, t):
 		return "<em><b>%s</b></em>" % t.text()
 
+	def hr(self, t):
+		return "<hr />"
+
 	def h1(self, t): return "<h1>%s</h1>" % t.text()
 
 	def h2(self, t): return "<h2>%s</h2>" % t.text()
