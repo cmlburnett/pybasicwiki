@@ -2,6 +2,7 @@
 Very simple wiki parser. I created this for a cherrypy project so that I can document things online rather than hard editing template files. Wiki syntax is similar to MediaWiki but very simplified.
 
 To use it:
+
 	from pybasicwiki import basicwiki, HTMLFormatter
 	def linker(href, text):
 		if text is None:
