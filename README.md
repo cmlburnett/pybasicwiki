@@ -5,6 +5,7 @@ To use it:
 
 	from pybasicwiki import basicwiki, HTMLFormatter
 	def linker(href, text):
+		# Do something here to check if it's a wiki page to link internally, otherwise link externally?
 		if text is None:
 			return ("/wiki/%s" % href, href)
 		else:
