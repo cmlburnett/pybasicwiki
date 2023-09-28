@@ -30,3 +30,15 @@ Alternatively, a generator style parser can be used if you want to custom format
 			# Ignore
 			pass
 
+Supported syntax:
+- ''italics''
+- '''bold'''
+- ''''italics and bold'''''
+- =H1 header=
+- ==H2 header==
+- ===H3 header===
+- ====H4 header====
+- =====H5 header=====
+- [[Link to a page]]
+- [[Link to a page|Short text]]
+
