@@ -43,7 +43,8 @@ class HTMLFormatter:
 			return ""
 
 	def text(self, t):
-		return t.text()
+		# Text is striped of whitespace but one space back to separate from links, etc
+		return t.text() + " "
 
 	def newline(self, t):
 		if isinstance(self.priortoken, basicwiki.newline):
