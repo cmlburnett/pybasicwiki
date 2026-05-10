@@ -3,14 +3,25 @@ import re
 class HTMLFormatter:
 	def __init__(self, linkresolver):
 		self._linkresolver = linkresolver
+		self.priortoken = None
 
 	def __call__(self, t):
 		props = dir(self)
 		if t.name() in props:
 			f = getattr(__class__, t.name())
-			return f(self, t)
+			ret = f(self, t)
+			self.priortoken = t
+			return ret
 		else:
 			raise KeyError("Attempted to format token %s but no function found to format it" % t.name())
+
+	def eol(self, t):
+		if isinstance(self.priortoken, basicwiki.ul):
+			return "</ul>"
+		elif isinstance(self.priortoken, basicwiki.ol):
+			return "</ul>"
+		else:
+			return ""
 
 	def text(self, t):
 		return t.text()
@@ -40,6 +51,28 @@ class HTMLFormatter:
 
 	def h5(self, t): return "<h5>%s</h5>" % t.text()
 
+	def ul(self, t):
+		if isinstance(self.priortoken, basicwiki.ul):
+			if self.priortoken.level() == t.level():
+				return "<li>%s</li>" % t.text()
+			elif self.priortoken.level() < t.level():
+				return "<ul><li>%s</li>" % t.text()
+			else:
+				return "</ul><li>%s</li>" % t.text()
+		else:
+			return "<ul><li>%s</li>" % t.text()
+
+	def ol(self, t):
+		if isinstance(self.priortoken, basicwiki.ol):
+			if self.priortoken.level() == t.level():
+				return "<li>%s</li>" % t.text()
+			elif self.priortoken.level() < t.level():
+				return "<ol><li>%s</li>" % t.text()
+			else:
+				return "</ol><li>%s</li>" % t.text()
+		else:
+			return "<ol><li>%s</li>" % t.text()
+
 	def link(self, t):
 		r = self._linkresolver(t.link(), None)
 		return '<a href="%s">%s</a>' % (r[0], r[1])
@@ -49,6 +82,11 @@ class HTMLFormatter:
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
 class basicwiki:
+	class EOL:
+		def __str__(self): return "eol()"
+		def __repr__(self): return str(self)
+		def name(self): return 'eol'
+
 	class newline:
 		def __str__(self): return "newline()"
 		def __repr__(self): return str(self)
@@ -150,6 +188,26 @@ class basicwiki:
 		def link(self): return self._url
 		def text(self): return self._text
 
+	class ul:
+		def __init__(self, lvl, txt):
+			self._level = lvl
+			self._text = txt
+		def __str__(self): return "ul(%d, %s)" % (self._level, self._text)
+		def __repr__(self): return str(self)
+		def name(self): return "ul"
+		def level(self): return self._level
+		def text(self): return self._text
+
+	class ol:
+		def __init__(self, lvl, txt):
+			self._level = lvl
+			self._text = txt
+		def __str__(self): return "ol(%d, %s)" % (self._level, self._text)
+		def __repr__(self): return str(self)
+		def name(self): return "ol"
+		def level(self): return self._level
+		def text(self): return self._text
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		('h5', re.compile("""=====([^=]+)=====""")),
@@ -163,6 +221,18 @@ class basicwiki:
 		('hr', re.compile('^----$')),
 		('linktxt', re.compile('\\[\\[([^]]+)[|]([^]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^]]+)\\]\\]')),
+
+		('ul1', re.compile('\*[ ]*([^=]+)')),
+		('ul2', re.compile('\*\*[ ]*([^=]+)')),
+		('ul3', re.compile('\*\*\*[ ]*([^=]+)')),
+		('ul4', re.compile('\*\*\*\*[ ]*([^=]+)')),
+		('ul5', re.compile('\*\*\*\*\*[ ]*([^=]+)')),
+
+		('ol1', re.compile('\#[ ]*([^=]+)')),
+		('ol2', re.compile('\#\#[ ]*([^=]+)')),
+		('ol3', re.compile('\#\#\#[ ]*([^=]+)')),
+		('ol4', re.compile('\#\#\#\#[ ]*([^=]+)')),
+		('ol5', re.compile('\#\#\#\#\#[ ]*([^=]+)')),
 	]
 
 	@staticmethod
@@ -238,6 +308,39 @@ class basicwiki:
 				elif k == 'linktxt':
 					matches = True
 					ret.append(__class__.linktxt( r.group(1),r.group(2) ))
+
+				elif k == 'ul1':
+					matches = True
+					ret.append(__class__.ul(1, r.group(1) ))
+				elif k == 'ul2':
+					matches = True
+					ret.append(__class__.ul(2, r.group(1) ))
+				elif k == 'ul3':
+					matches = True
+					ret.append(__class__.ul(3, r.group(1) ))
+				elif k == 'ul4':
+					matches = True
+					ret.append(__class__.ul(4, r.group(1) ))
+				elif k == 'ul5':
+					matches = True
+					ret.append(__class__.ul(5, r.group(1) ))
+
+				elif k == 'ol1':
+					matches = True
+					ret.append(__class__.ol(1, r.group(1) ))
+				elif k == 'ol2':
+					matches = True
+					ret.append(__class__.ol(2, r.group(1) ))
+				elif k == 'ol3':
+					matches = True
+					ret.append(__class__.ol(3, r.group(1) ))
+				elif k == 'ol4':
+					matches = True
+					ret.append(__class__.ol(4, r.group(1) ))
+				elif k == 'ol5':
+					matches = True
+					ret.append(__class__.ol(5, r.group(1) ))
+
 				else:
 					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
 
@@ -251,6 +354,9 @@ class basicwiki:
 
 		if not matches:
 			ret.append( __class__.text(txt) )
+
+		# Return an EOL token tof rend of stream to terminate an UL or OL list or something like that
+		ret.append(__class__.EOL())
 
 		return ret
 

@@ -43,4 +43,6 @@ Supported syntax:
 - [[Link to a page]]
 - [[Link to a page|Short text]]
 - ---- (a horizontal rule)
+- * unordered list
+- # ordered list
 
