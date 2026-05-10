@@ -4,21 +4,27 @@ class HTMLFormatter:
 	def __init__(self, linkresolver):
 		self._linkresolver = linkresolver
 		self.priortoken = None
+		self.priortokennonnewline = None
 
 	def __call__(self, t):
 		props = dir(self)
 		if t.name() in props:
 			f = getattr(__class__, t.name())
 			ret = f(self, t)
+
+			# Save the prior token and prior non-newline token
 			self.priortoken = t
+			if not isinstance(t, basicwiki.newline):
+				self.priortokennonnewline = t
+
 			return ret
 		else:
 			raise KeyError("Attempted to format token %s but no function found to format it" % t.name())
 
 	def eol(self, t):
-		if isinstance(self.priortoken, basicwiki.ul):
+		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			return "</ul>"
-		elif isinstance(self.priortoken, basicwiki.ol):
+		elif isinstance(self.priortokennonnewline, basicwiki.ol):
 			return "</ul>"
 		else:
 			return ""
@@ -27,7 +33,13 @@ class HTMLFormatter:
 		return t.text()
 
 	def newline(self, t):
-		return "<br /><br />"
+		if isinstance(self.priortoken, basicwiki.newline):
+			if isinstance(self.priortokennonnewline, basicwiki.ul) or isinstance(self.priortokennonnewline, basicwiki.ol):
+				return "\n"
+			else:
+				return "<br /><br />\n"
+		else:
+			return "\n"
 
 	def italic(self, t):
 		return "<em>%s</em>" % t.text()
@@ -52,26 +64,26 @@ class HTMLFormatter:
 	def h5(self, t): return "<h5>%s</h5>" % t.text()
 
 	def ul(self, t):
-		if isinstance(self.priortoken, basicwiki.ul):
-			if self.priortoken.level() == t.level():
+		if isinstance(self.priortokennonnewline, basicwiki.ul):
+			if self.priortokennonnewline.level() == t.level():
 				return "<li>%s</li>" % t.text()
-			elif self.priortoken.level() < t.level():
-				return "<ul><li>%s</li>" % t.text()
+			elif self.priortokennonnewline.level() < t.level():
+				return "<ul>\n<li>%s</li>" % t.text()
 			else:
-				return "</ul><li>%s</li>" % t.text()
+				return "</ul>\n<li>%s</li>" % t.text()
 		else:
-			return "<ul><li>%s</li>" % t.text()
+			return "<ul>\n<li>%s</li>" % t.text()
 
 	def ol(self, t):
-		if isinstance(self.priortoken, basicwiki.ol):
-			if self.priortoken.level() == t.level():
+		if isinstance(self.priortokennonnewline, basicwiki.ol):
+			if self.priortokennonnewline.level() == t.level():
 				return "<li>%s</li>" % t.text()
-			elif self.priortoken.level() < t.level():
-				return "<ol><li>%s</li>" % t.text()
+			elif self.priortokennonnewline.level() < t.level():
+				return "<ol>\n<li>%s</li>" % t.text()
 			else:
-				return "</ol><li>%s</li>" % t.text()
+				return "</ol>\n<li>%s</li>" % t.text()
 		else:
-			return "<ol><li>%s</li>" % t.text()
+			return "<ol>\n<li>%s</li>" % t.text()
 
 	def link(self, t):
 		r = self._linkresolver(t.link(), None)
@@ -251,8 +263,11 @@ class basicwiki:
 		for line in lines:
 			ret = __class__.tokenize(line)
 			final += ret
+			final.append(__class__.newline())
+		final.append(__class__.EOL())
 
 		for t in final:
+			print(t)
 			yield t
 
 	@staticmethod
@@ -261,7 +276,7 @@ class basicwiki:
 
 		#print('Tokenize "%s"' % txt)
 		if not len(txt):
-			return [__class__.newline()]
+			return []
 
 		ret = []
 		matches = False
@@ -354,9 +369,6 @@ class basicwiki:
 
 		if not matches:
 			ret.append( __class__.text(txt) )
-
-		# Return an EOL token tof rend of stream to terminate an UL or OL list or something like that
-		ret.append(__class__.EOL())
 
 		return ret
 
