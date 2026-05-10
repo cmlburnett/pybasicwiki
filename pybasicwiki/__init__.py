@@ -231,6 +231,18 @@ class basicwiki:
 
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
+		('ul5', re.compile('\*\*\*\*\*[ ]*(.+)')),
+		('ul4', re.compile('\*\*\*\*[ ]*(.+)')),
+		('ul3', re.compile('\*\*\*[ ]*(.+)')),
+		('ul2', re.compile('\*\*[ ]*(.+)')),
+		('ul1', re.compile('\*[ ]*(.+)')),
+
+		('ol5', re.compile('\#\#\#\#\#[ ]*(.+)')),
+		('ol4', re.compile('\#\#\#\#[ ]*(.+)')),
+		('ol3', re.compile('\#\#\#[ ]*(.+)')),
+		('ol2', re.compile('\#\#[ ]*(.+)')),
+		('ol1', re.compile('\#[ ]*(.+)')),
+
 		('h5', re.compile("""=====([^=]+)=====""")),
 		('h4', re.compile("""====([^=]+)====""")),
 		('h3', re.compile("""===([^=]+)===""")),
@@ -242,18 +254,6 @@ class basicwiki:
 		('hr', re.compile('^----$')),
 		('linktxt', re.compile('\\[\\[([^]]+)[|]([^]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^]]+)\\]\\]')),
-
-		('ul5', re.compile('\*\*\*\*\*[ ]*([^=]+)')),
-		('ul4', re.compile('\*\*\*\*[ ]*([^=]+)')),
-		('ul3', re.compile('\*\*\*[ ]*([^=]+)')),
-		('ul2', re.compile('\*\*[ ]*([^=]+)')),
-		('ul1', re.compile('\*[ ]*([^=]+)')),
-
-		('ol5', re.compile('\#\#\#\#\#[ ]*([^=]+)')),
-		('ol4', re.compile('\#\#\#\#[ ]*([^=]+)')),
-		('ol3', re.compile('\#\#\#[ ]*([^=]+)')),
-		('ol2', re.compile('\#\#[ ]*([^=]+)')),
-		('ol1', re.compile('\#[ ]*([^=]+)')),
 	]
 
 	@staticmethod
@@ -293,9 +293,9 @@ class basicwiki:
 			r = v.search(txt)
 			if r:
 				s = r.span()
-				#print(['hit', k, r, s])
+				print(['hit', k, r, s])
 				if s[0] != 0:
-					#print(['pre', s[0], txt[0:s[0]]])
+					print(['pre', s[0], txt[0:s[0]]])
 					pre = __class__.tokenize(txt[0:s[0]])
 					ret += pre
 
@@ -369,7 +369,7 @@ class basicwiki:
 					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
 
 				if s[1] < len(txt):
-					#print(['post', s[1], len(txt), txt[s[1]:]])
+					print(['post', s[1], len(txt), txt[s[1]:]])
 					post = __class__.tokenize(txt[s[1]:])
 					ret += post
 
