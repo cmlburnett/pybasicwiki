@@ -48,7 +48,7 @@ class HTMLFormatter:
 	def newline(self, t):
 		if isinstance(self.priortoken, basicwiki.newline):
 			if isinstance(self.priortoken, basicwiki.newline):
-				return "<br /><br />\n"
+				return "<br />\n"
 			else:
 				return "\n"
 		else:
