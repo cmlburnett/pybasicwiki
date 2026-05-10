@@ -9,8 +9,17 @@ class HTMLFormatter:
 	def __call__(self, t):
 		props = dir(self)
 		if t.name() in props:
+			ret = ""
+
+			if isinstance(self.priortokennonnewline, basicwiki.ul):
+				if not isinstance(t, basicwiki.ul) and not isinstance(t, basicwiki.newline):
+					ret = "  </li>\n</ul>\n"
+			elif isinstance(self.priortokennonnewline, basicwiki.ol):
+				if not isinstance(t, basicwiki.ol) and not isinstance(t, basicwiki.newline):
+					ret = "  </li>\n</ol>\n"
+
 			f = getattr(__class__, t.name())
-			ret = f(self, t)
+			ret += f(self, t)
 
 			# Save the prior token and prior non-newline token
 			self.priortoken = t
@@ -66,24 +75,24 @@ class HTMLFormatter:
 	def ul(self, t):
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			if self.priortokennonnewline.level() == t.level():
-				return "<li>%s</li>" % t.text()
+				return "</li>\n<li>%s" % t.text()
 			elif self.priortokennonnewline.level() < t.level():
-				return "<ul>\n<li>%s</li>" % t.text()
+				return "\n<ul>\n<li>%s" % t.text()
 			else:
-				return "</ul>\n<li>%s</li>" % t.text()
+				return "</li>\n</ul>\n</li>\n<li>%s" % t.text()
 		else:
-			return "<ul>\n<li>%s</li>" % t.text()
+			return "<ul>\n<li>%s" % t.text()
 
 	def ol(self, t):
 		if isinstance(self.priortokennonnewline, basicwiki.ol):
 			if self.priortokennonnewline.level() == t.level():
-				return "<li>%s</li>" % t.text()
+				return "</li>\n<li>%s" % t.text()
 			elif self.priortokennonnewline.level() < t.level():
-				return "<ol>\n<li>%s</li>" % t.text()
+				return "\n<ol>\n<li>%s" % t.text()
 			else:
-				return "</ol>\n<li>%s</li>" % t.text()
+				return "</li>\n</ol>\n</li>\n<li>%s" % t.text()
 		else:
-			return "<ol>\n<li>%s</li>" % t.text()
+			return "<ol>\n<li>%s" % t.text()
 
 	def link(self, t):
 		r = self._linkresolver(t.link(), None)
@@ -111,7 +120,7 @@ class basicwiki:
 
 	class text:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "text(%s, %d)" % (self._text, len(self._text))
 		def __repr__(self): return str(self)
 		def name(self): return 'text'
@@ -119,7 +128,7 @@ class basicwiki:
 
 	class italic:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "italic(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'italic'
@@ -127,7 +136,7 @@ class basicwiki:
 
 	class bold:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "bold(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'bold'
@@ -135,7 +144,7 @@ class basicwiki:
 
 	class bolditalic:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "bolditalic(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'bolditalic'
@@ -143,7 +152,7 @@ class basicwiki:
 
 	class h1:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "h1(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h1'
@@ -151,7 +160,7 @@ class basicwiki:
 
 	class h2:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "h2(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h2'
@@ -159,7 +168,7 @@ class basicwiki:
 
 	class h3:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "h3(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h3'
@@ -167,7 +176,7 @@ class basicwiki:
 
 	class h4:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "h4(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h4'
@@ -175,7 +184,7 @@ class basicwiki:
 
 	class h5:
 		def __init__(self, txt):
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "h5(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h5'
@@ -193,7 +202,7 @@ class basicwiki:
 	class linktxt:
 		def __init__(self, url, txt):
 			self._url = url
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "linktxt(%s,%s)" % (self._url, self._text)
 		def __repr__(self): return str(self)
 		def name(self): return 'linktxt'
@@ -203,7 +212,7 @@ class basicwiki:
 	class ul:
 		def __init__(self, lvl, txt):
 			self._level = lvl
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "ul(%d, %s)" % (self._level, self._text)
 		def __repr__(self): return str(self)
 		def name(self): return "ul"
@@ -213,7 +222,7 @@ class basicwiki:
 	class ol:
 		def __init__(self, lvl, txt):
 			self._level = lvl
-			self._text = txt
+			self._text = txt.strip()
 		def __str__(self): return "ol(%d, %s)" % (self._level, self._text)
 		def __repr__(self): return str(self)
 		def name(self): return "ol"
@@ -234,17 +243,17 @@ class basicwiki:
 		('linktxt', re.compile('\\[\\[([^]]+)[|]([^]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^]]+)\\]\\]')),
 
-		('ul1', re.compile('\*[ ]*([^=]+)')),
-		('ul2', re.compile('\*\*[ ]*([^=]+)')),
-		('ul3', re.compile('\*\*\*[ ]*([^=]+)')),
-		('ul4', re.compile('\*\*\*\*[ ]*([^=]+)')),
 		('ul5', re.compile('\*\*\*\*\*[ ]*([^=]+)')),
+		('ul4', re.compile('\*\*\*\*[ ]*([^=]+)')),
+		('ul3', re.compile('\*\*\*[ ]*([^=]+)')),
+		('ul2', re.compile('\*\*[ ]*([^=]+)')),
+		('ul1', re.compile('\*[ ]*([^=]+)')),
 
-		('ol1', re.compile('\#[ ]*([^=]+)')),
-		('ol2', re.compile('\#\#[ ]*([^=]+)')),
-		('ol3', re.compile('\#\#\#[ ]*([^=]+)')),
-		('ol4', re.compile('\#\#\#\#[ ]*([^=]+)')),
 		('ol5', re.compile('\#\#\#\#\#[ ]*([^=]+)')),
+		('ol4', re.compile('\#\#\#\#[ ]*([^=]+)')),
+		('ol3', re.compile('\#\#\#[ ]*([^=]+)')),
+		('ol2', re.compile('\#\#[ ]*([^=]+)')),
+		('ol1', re.compile('\#[ ]*([^=]+)')),
 	]
 
 	@staticmethod
