@@ -11,19 +11,23 @@ class HTMLFormatter:
 		if t.name() in props:
 			ret = ""
 
-			if isinstance(self.priortokennonnewline, basicwiki.ul):
-				if not isinstance(t, basicwiki.ul) and not isinstance(t, basicwiki.newline):
-					ret = "  </li>\n</ul>\n"
-			elif isinstance(self.priortokennonnewline, basicwiki.ol):
-				if not isinstance(t, basicwiki.ol) and not isinstance(t, basicwiki.newline):
-					ret = "  </li>\n</ol>\n"
+			if isinstance(t, basicwiki.newline) and isinstance(self.priortoken, basicwiki.newline):
+				if isinstance(self.priortokennonnewline, basicwiki.ul):
+					ret += "</li></ul>\n"
+				elif isinstance(self.priortokennonnewline, basicwiki.ol):
+					ret += "</li></ol>\n"
+
+			if isinstance(self.priortoken, basicwiki.newline) and isinstance(t, basicwiki.newline):
+				self.priortokennonnewline = None
+
+			print([t, self.priortoken, self.priortokennonnewline])
 
 			f = getattr(__class__, t.name())
 			ret += f(self, t)
 
 			# Save the prior token and prior non-newline token
 			self.priortoken = t
-			if not isinstance(t, basicwiki.newline):
+			if isinstance(t, basicwiki.ul) or isinstance(t, basicwiki.ol):
 				self.priortokennonnewline = t
 
 			return ret
@@ -43,10 +47,10 @@ class HTMLFormatter:
 
 	def newline(self, t):
 		if isinstance(self.priortoken, basicwiki.newline):
-			if isinstance(self.priortokennonnewline, basicwiki.ul) or isinstance(self.priortokennonnewline, basicwiki.ol):
-				return "\n"
-			else:
+			if isinstance(self.priortoken, basicwiki.newline):
 				return "<br /><br />\n"
+			else:
+				return "\n"
 		else:
 			return "\n"
 
@@ -75,24 +79,24 @@ class HTMLFormatter:
 	def ul(self, t):
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			if self.priortokennonnewline.level() == t.level():
-				return "</li>\n<li>%s" % t.text()
+				return "</li><li>"
 			elif self.priortokennonnewline.level() < t.level():
-				return "\n<ul>\n<li>%s" % t.text()
+				return "\n<ul>\n<li>"
 			else:
-				return "</li>\n</ul>\n</li>\n<li>%s" % t.text()
+				return "</li>\n</ul>\n</li>\n<li>"
 		else:
-			return "<ul>\n<li>%s" % t.text()
+			return "<ul>\n<li>"
 
 	def ol(self, t):
 		if isinstance(self.priortokennonnewline, basicwiki.ol):
 			if self.priortokennonnewline.level() == t.level():
-				return "</li>\n<li>%s" % t.text()
+				return "<li>"
 			elif self.priortokennonnewline.level() < t.level():
-				return "\n<ol>\n<li>%s" % t.text()
+				return "\n<ol>\n<li>"
 			else:
-				return "</li>\n</ol>\n</li>\n<li>%s" % t.text()
+				return "</li>\n</ol>\n</li>\n<li>"
 		else:
-			return "<ol>\n<li>%s" % t.text()
+			return "<ol>\n<li>"
 
 	def link(self, t):
 		r = self._linkresolver(t.link(), None)
@@ -210,38 +214,25 @@ class basicwiki:
 		def text(self): return self._text
 
 	class ul:
-		def __init__(self, lvl, txt):
+		def __init__(self, lvl):
 			self._level = lvl
-			self._text = txt.strip()
-		def __str__(self): return "ul(%d, %s)" % (self._level, self._text)
+		def __str__(self): return "ul(%d)" % (self._level,)
 		def __repr__(self): return str(self)
 		def name(self): return "ul"
 		def level(self): return self._level
-		def text(self): return self._text
 
 	class ol:
-		def __init__(self, lvl, txt):
+		def __init__(self, lvl):
 			self._level = lvl
-			self._text = txt.strip()
-		def __str__(self): return "ol(%d, %s)" % (self._level, self._text)
+		def __str__(self): return "ol(%d)" % (self._level,)
 		def __repr__(self): return str(self)
 		def name(self): return "ol"
 		def level(self): return self._level
-		def text(self): return self._text
 
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
-		('ul5', re.compile('\*\*\*\*\*[ ]*(.+)')),
-		('ul4', re.compile('\*\*\*\*[ ]*(.+)')),
-		('ul3', re.compile('\*\*\*[ ]*(.+)')),
-		('ul2', re.compile('\*\*[ ]*(.+)')),
-		('ul1', re.compile('\*[ ]*(.+)')),
-
-		('ol5', re.compile('\#\#\#\#\#[ ]*(.+)')),
-		('ol4', re.compile('\#\#\#\#[ ]*(.+)')),
-		('ol3', re.compile('\#\#\#[ ]*(.+)')),
-		('ol2', re.compile('\#\#[ ]*(.+)')),
-		('ol1', re.compile('\#[ ]*(.+)')),
+		('ul', re.compile('(\*+)[ ]*')),
+		('ol', re.compile('(\#+)[ ]*')),
 
 		('h5', re.compile("""=====([^=]+)=====""")),
 		('h4', re.compile("""====([^=]+)====""")),
@@ -283,7 +274,7 @@ class basicwiki:
 	def tokenize(txt):
 		"""Tokenize the string @txt into a list of tokens"""
 
-		#print('Tokenize "%s"' % txt)
+		print('Tokenize "%s"' % txt)
 		if not len(txt):
 			return []
 
@@ -333,37 +324,12 @@ class basicwiki:
 					matches = True
 					ret.append(__class__.linktxt( r.group(1),r.group(2) ))
 
-				elif k == 'ul1':
+				elif k == 'ul':
 					matches = True
-					ret.append(__class__.ul(1, r.group(1) ))
-				elif k == 'ul2':
+					ret.append(__class__.ul(len(r.group(1))))
+				elif k == 'ol':
 					matches = True
-					ret.append(__class__.ul(2, r.group(1) ))
-				elif k == 'ul3':
-					matches = True
-					ret.append(__class__.ul(3, r.group(1) ))
-				elif k == 'ul4':
-					matches = True
-					ret.append(__class__.ul(4, r.group(1) ))
-				elif k == 'ul5':
-					matches = True
-					ret.append(__class__.ul(5, r.group(1) ))
-
-				elif k == 'ol1':
-					matches = True
-					ret.append(__class__.ol(1, r.group(1) ))
-				elif k == 'ol2':
-					matches = True
-					ret.append(__class__.ol(2, r.group(1) ))
-				elif k == 'ol3':
-					matches = True
-					ret.append(__class__.ol(3, r.group(1) ))
-				elif k == 'ol4':
-					matches = True
-					ret.append(__class__.ol(4, r.group(1) ))
-				elif k == 'ol5':
-					matches = True
-					ret.append(__class__.ol(5, r.group(1) ))
+					ret.append(__class__.ol(len(r.group(1))))
 
 				else:
 					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
