@@ -20,7 +20,7 @@ class HTMLFormatter:
 			if isinstance(self.priortoken, basicwiki.newline) and isinstance(t, basicwiki.newline):
 				self.priortokennonnewline = None
 
-			print([t, self.priortoken, self.priortokennonnewline])
+			#print([t, self.priortoken, self.priortokennonnewline])
 
 			f = getattr(__class__, t.name())
 			ret += f(self, t)
@@ -44,7 +44,7 @@ class HTMLFormatter:
 
 	def text(self, t):
 		# Text is striped of whitespace but one space back to separate from links, etc
-		return t.text() + " "
+		return " " + t.text() + " "
 
 	def newline(self, t):
 		if isinstance(self.priortoken, basicwiki.newline):
@@ -240,9 +240,9 @@ class basicwiki:
 		('h3', re.compile("""===([^=]+)===""")),
 		('h2', re.compile("""==([^=]+)==""")),
 		('h1', re.compile("""=([^=]+)=""")),
-		('bolditalic', re.compile("""'''''([^']+)'''''""")),
-		('bold', re.compile("""'''([^']+)'''""")),
-		('italic', re.compile("""''([^']+)''""")),
+		('bolditalic', re.compile("""'''''([^'']+)'''''""")),
+		('bold', re.compile("""'''([^'']+)'''""")),
+		('italic', re.compile("""''([^'']+)''""")),
 		('hr', re.compile('^----$')),
 		('linktxt', re.compile('\\[\\[([^]]+)[|]([^]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^]]+)\\]\\]')),
@@ -268,14 +268,14 @@ class basicwiki:
 		final.append(__class__.EOL())
 
 		for t in final:
-			print(t)
+			#print(t)
 			yield t
 
 	@staticmethod
 	def tokenize(txt):
 		"""Tokenize the string @txt into a list of tokens"""
 
-		print('Tokenize "%s"' % txt)
+		#print('Tokenize "%s"' % txt)
 		if not len(txt):
 			return []
 
@@ -285,9 +285,9 @@ class basicwiki:
 			r = v.search(txt)
 			if r:
 				s = r.span()
-				print(['hit', k, r, s])
+				#print(['hit', k, r, s])
 				if s[0] != 0:
-					print(['pre', s[0], txt[0:s[0]]])
+					#print(['pre', s[0], txt[0:s[0]]])
 					pre = __class__.tokenize(txt[0:s[0]])
 					ret += pre
 
@@ -336,7 +336,7 @@ class basicwiki:
 					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
 
 				if s[1] < len(txt):
-					print(['post', s[1], len(txt), txt[s[1]:]])
+					#print(['post', s[1], len(txt), txt[s[1]:]])
 					post = __class__.tokenize(txt[s[1]:])
 					ret += post
 
