@@ -245,7 +245,7 @@ class basicwiki:
 		('bold', re.compile("""'''([^'']+)'''""")),
 		('italic', re.compile("""''([^'']+)''""")),
 		('hr', re.compile('^----$')),
-		('linktxt', re.compile('\\[\\[([^]]+)[|]([^]]+)\\]\\]')),
+		('linktxt', re.compile('\\[\\[([^|]]+)[|]([^]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^]]+)\\]\\]')),
 	]
 
