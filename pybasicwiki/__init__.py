@@ -22,7 +22,8 @@ class HTMLFormatter:
 
 			#print([t, self.priortoken, self.priortokennonnewline])
 
-			f = getattr(__class__, t.name())
+			kls = type(self)
+			f = getattr(kls, t.name())
 			ret += f(self, t)
 
 			# Save the prior token and prior non-newline token
