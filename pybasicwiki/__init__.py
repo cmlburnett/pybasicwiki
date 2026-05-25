@@ -108,6 +108,9 @@ class HTMLFormatter:
 		r = self._linkresolver(t.link(), t.text())
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
+	def signature(self, t):
+		raise NotImplementedError("Need to subclass this to handle signatures")
+
 class basicwiki:
 	class EOL:
 		def __str__(self): return "eol()"
@@ -231,6 +234,12 @@ class basicwiki:
 		def name(self): return "ol"
 		def level(self): return self._level
 
+	class signature:
+		def __init__(self): pass
+		def __str__(self): return "signature()"
+		def __repr__(self): return str(self)
+		def name(self): return "signature"
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		('ul', re.compile('(\*+)[ ]*')),
@@ -247,6 +256,8 @@ class basicwiki:
 		('hr', re.compile('^----$')),
 		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^\]]+)\\]\\]')),
+		# Any number of tildes will capture signature
+		('signature', re.compile('~{3,}'))
 	]
 
 	@staticmethod
@@ -332,6 +343,11 @@ class basicwiki:
 				elif k == 'ol':
 					matches = True
 					ret.append(__class__.ol(len(r.group(1))))
+
+
+				elif k == 'signature':
+					matches = True
+					ret.append(__class__.signature())
 
 				else:
 					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
