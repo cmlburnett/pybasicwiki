@@ -16,6 +16,8 @@ class HTMLFormatter:
 					ret += "</li></ul>\n"
 				elif isinstance(self.priortokennonnewline, basicwiki.ol):
 					ret += "</li></ol>\n"
+				elif isinstance(self.priortokennonnewline, basicwiki.tab):
+					ret += "</blockquote>\n"
 
 			if isinstance(self.priortoken, basicwiki.newline) and isinstance(t, basicwiki.newline):
 				self.priortokennonnewline = None
@@ -28,7 +30,7 @@ class HTMLFormatter:
 
 			# Save the prior token and prior non-newline token
 			self.priortoken = t
-			if isinstance(t, basicwiki.ul) or isinstance(t, basicwiki.ol):
+			if isinstance(t, basicwiki.ul) or isinstance(t, basicwiki.ol) or isinstance(t, basicwiki.tab):
 				self.priortokennonnewline = t
 
 			return ret
@@ -39,7 +41,9 @@ class HTMLFormatter:
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			return "</ul>"
 		elif isinstance(self.priortokennonnewline, basicwiki.ol):
-			return "</ul>"
+			return "</ol>"
+		elif isinstance(self.priortokennonnewline, basicwiki.tab):
+			return "</blockquote>"
 		else:
 			return ""
 
@@ -99,6 +103,17 @@ class HTMLFormatter:
 				return "</li>\n</ol>\n</li>\n<li>"
 		else:
 			return "<ol>\n<li>"
+
+	def tab(self, t):
+		if isinstance(self.priortokennonnewline, basicwiki.tab):
+			if self.priortokennonnewline.level() == t.level():
+				return ""
+			elif self.priortokennonnewline.level() < t.level():
+				return "\n<blockquote>"
+			else:
+				return "</blockquote>"
+		else:
+			return "<blockquote>"
 
 	def link(self, t):
 		r = self._linkresolver(t.link(), None)
@@ -240,10 +255,19 @@ class basicwiki:
 		def __repr__(self): return str(self)
 		def name(self): return "signature"
 
+	class tab:
+		def __init__(self, lvl):
+			self._level = lvl
+		def __str__(self): return "tab(%d)" % (self._level,)
+		def __repr__(self): return str(self)
+		def name(self): return "tab"
+		def level(self): return self._level
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
-		('ul', re.compile('(\*+)[ ]*')),
-		('ol', re.compile('(\#+)[ ]*')),
+		# Accept ordered and unordered lists at the start of a line
+		('ul', re.compile('^(\*+)[ ]*')),
+		('ol', re.compile('^(\#+)[ ]*')),
 
 		('h5', re.compile("""=====([^=]+)=====""")),
 		('h4', re.compile("""====([^=]+)====""")),
@@ -257,7 +281,9 @@ class basicwiki:
 		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]')),
 		('link', re.compile('\\[\\[([^\]]+)\\]\\]')),
 		# Any number of tildes will capture signature
-		('signature', re.compile('~{3,}'))
+		('signature', re.compile('~{3,}')),
+		# Accept tabs only at the start of a line
+		('tab', re.compile('^(:{1,})')),
 	]
 
 	@staticmethod
@@ -343,6 +369,9 @@ class basicwiki:
 				elif k == 'ol':
 					matches = True
 					ret.append(__class__.ol(len(r.group(1))))
+				elif k == 'tab':
+					matches = True
+					ret.append(__class__.tab(len(r.group(1))))
 
 
 				elif k == 'signature':
