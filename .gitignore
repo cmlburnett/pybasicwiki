@@ -1,3 +1,6 @@
 dist
 pybasicwiki.egg-info
 __pycache__
+*.swp
+*.swo
+build
