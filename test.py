@@ -3,7 +3,7 @@ from pybasicwiki import HTMLFormatter
 
 txt = """==hi==\nTest\n\npa''rag''raph 2\n[[Link to something]] test\n----\n[[Link to something else|Else]]\n==byte==\nbye\n"""
 txt = """==About SensorBoard==
-SensorBoard is a system of devices to read calorimetry data and storage of all that data on a single server.
+SensorBoard is a system of [[device]]s to [[read]] calorimetry data and storage of all that data on a single server.
 
 See [[/experiment|Experiments]] page to start an experiment.
 

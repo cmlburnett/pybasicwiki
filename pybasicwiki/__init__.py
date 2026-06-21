@@ -278,8 +278,8 @@ class basicwiki:
 		('bold', re.compile("""'''([^'']+)'''""")),
 		('italic', re.compile("""''([^'']+)''""")),
 		('hr', re.compile('^----$')),
-		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]')),
-		('link', re.compile('\\[\\[([^\]]+)\\]\\]')),
+		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([^\s]*)')),
+		('link', re.compile('\\[\\[([^\]]+)\\]\\]([^\s]*)')),
 		# Any number of tildes will capture signature
 		('signature', re.compile('~{3,}')),
 		# Accept tabs only at the start of a line
@@ -358,9 +358,16 @@ class basicwiki:
 					ret.append(__class__.hr())
 				elif k == 'link':
 					matches = True
-					ret.append(__class__.link( r.group(1) ))
+					txt = r.group(1)
+					if r.group(2) and len(r.group(2)):
+						ret.append(__class__.linktxt( r.group(1),r.group(1)+r.group(2) ))
+					else:
+						ret.append(__class__.link( r.group(1) ))
 				elif k == 'linktxt':
 					matches = True
+					txt = r.group(2)
+					if r.group(3) and len(r.group(3)):
+						txt += r.group(3)
 					ret.append(__class__.linktxt( r.group(1),r.group(2) ))
 
 				elif k == 'ul':
