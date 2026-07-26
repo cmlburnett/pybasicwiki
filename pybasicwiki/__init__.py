@@ -22,7 +22,7 @@ class HTMLFormatter:
 			if isinstance(self.priortoken, basicwiki.newline) and isinstance(t, basicwiki.newline):
 				self.priortokennonnewline = None
 
-			#print([t, self.priortoken, self.priortokennonnewline])
+			print([t, self.priortoken, self.priortokennonnewline])
 
 			kls = type(self)
 			f = getattr(kls, t.name())
@@ -278,8 +278,8 @@ class basicwiki:
 		('bold', re.compile("""'''([^'']+)'''""")),
 		('italic', re.compile("""''([^'']+)''""")),
 		('hr', re.compile('^----$')),
-		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([^\s]*)')),
-		('link', re.compile('\\[\\[([^\]]+)\\]\\]([^\s]*)')),
+		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([\S]*)')),
+		('link', re.compile('\\[\\[([^\]]+)\\]\\]([\S]*)')),
 		# Any number of tildes will capture signature
 		('signature', re.compile('~{3,}')),
 		# Accept tabs only at the start of a line
@@ -313,91 +313,85 @@ class basicwiki:
 	def tokenize(txt):
 		"""Tokenize the string @txt into a list of tokens"""
 
-		#print('Tokenize "%s"' % txt)
+		print('Tokenize "%s"' % txt)
 		if not len(txt):
 			return []
 
 		ret = []
-		matches = False
+
+		# First first match on the line
+		first = None
 		for k,v in __class__.res:
 			r = v.search(txt)
 			if r:
-				s = r.span()
-				#print(['hit', k, r, s])
-				if s[0] != 0:
-					#print(['pre', s[0], txt[0:s[0]]])
-					pre = __class__.tokenize(txt[0:s[0]])
-					ret += pre
-
-				if k == 'italic':
-					matches = True
-					ret.append(__class__.italic( r.group(1) ))
-				elif k == 'bold':
-					matches = True
-					ret.append(__class__.bold( r.group(1) ))
-				elif k == 'bolditalic':
-					matches = True
-					ret.append(__class__.bolditalic( r.group(1) ))
-				elif k == 'h1':
-					matches = True
-					ret.append(__class__.h1( r.group(1) ))
-				elif k == 'h2':
-					matches = True
-					ret.append(__class__.h2( r.group(1) ))
-				elif k == 'h3':
-					matches = True
-					ret.append(__class__.h3( r.group(1) ))
-				elif k == 'h4':
-					matches = True
-					ret.append(__class__.h4( r.group(1) ))
-				elif k == 'h5':
-					matches = True
-					ret.append(__class__.h5( r.group(1) ))
-				elif k == 'hr':
-					matches = True
-					ret.append(__class__.hr())
-				elif k == 'link':
-					matches = True
-					txt = r.group(1)
-					if r.group(2) and len(r.group(2)):
-						ret.append(__class__.linktxt( r.group(1),r.group(1)+r.group(2) ))
-					else:
-						ret.append(__class__.link( r.group(1) ))
-				elif k == 'linktxt':
-					matches = True
-					txt = r.group(2)
-					if r.group(3) and len(r.group(3)):
-						txt += r.group(3)
-					ret.append(__class__.linktxt( r.group(1),r.group(2) ))
-
-				elif k == 'ul':
-					matches = True
-					ret.append(__class__.ul(len(r.group(1))))
-				elif k == 'ol':
-					matches = True
-					ret.append(__class__.ol(len(r.group(1))))
-				elif k == 'tab':
-					matches = True
-					ret.append(__class__.tab(len(r.group(1))))
-
-
-				elif k == 'signature':
-					matches = True
-					ret.append(__class__.signature())
-
+				if first is None:
+					first = (r, k, v)
 				else:
-					raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
+					if r.span()[0] < first[0].span()[0]:
+						first = (r, k, v)
 
-				if s[1] < len(txt):
-					#print(['post', s[1], len(txt), txt[s[1]:]])
-					post = __class__.tokenize(txt[s[1]:])
-					ret += post
+		if not first:
+			# It's all text so single token of text()
+			return [__class__.text(txt)]
 
-				if matches:
-					break
+		r = first[0]
+		k = first[1]
+		v = first[2]
 
-		if not matches:
-			ret.append( __class__.text(txt) )
+		# Get rest of line
+		pre = txt[0:r.span()[0]]
+		post = txt[r.span()[1]:]
+
+		# Everything before the token is text
+		ret.append(__class__.text(pre))
+
+		if k == 'italic':
+			ret.append(__class__.italic( r.group(1) ))
+		elif k == 'bold':
+			ret.append(__class__.bold( r.group(1) ))
+		elif k == 'bolditalic':
+			ret.append(__class__.bolditalic( r.group(1) ))
+		elif k == 'h1':
+			ret.append(__class__.h1( r.group(1) ))
+		elif k == 'h2':
+			ret.append(__class__.h2( r.group(1) ))
+		elif k == 'h3':
+			ret.append(__class__.h3( r.group(1) ))
+		elif k == 'h4':
+			ret.append(__class__.h4( r.group(1) ))
+		elif k == 'h5':
+			ret.append(__class__.h5( r.group(1) ))
+		elif k == 'hr':
+			ret.append(__class__.hr())
+		elif k == 'link':
+			txt = r.group(1)
+			if r.group(2) and len(r.group(2)):
+				print(['---------------', r.group(2), '-------------'])
+				ret.append(__class__.linktxt( r.group(1),r.group(1)+r.group(2) ))
+			else:
+				ret.append(__class__.link( r.group(1) ))
+		elif k == 'linktxt':
+			txt = r.group(2)
+			if r.group(3) and len(r.group(3)):
+				print(['---------------', r.group(3), '-------------'])
+				txt += r.group(3)
+			ret.append(__class__.linktxt( r.group(1),r.group(2) ))
+
+		elif k == 'ul':
+			ret.append(__class__.ul(len(r.group(1))))
+		elif k == 'ol':
+			ret.append(__class__.ol(len(r.group(1))))
+		elif k == 'tab':
+			ret.append(__class__.tab(len(r.group(1))))
+
+		elif k == 'signature':
+			ret.append(__class__.signature())
+
+		else:
+			raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
+
+		# Process everything left in the line
+		ret += __class__.tokenize(post)
 
 		return ret
 
