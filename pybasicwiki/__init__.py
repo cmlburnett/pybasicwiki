@@ -22,7 +22,7 @@ class HTMLFormatter:
 			if isinstance(self.priortoken, basicwiki.newline) and isinstance(t, basicwiki.newline):
 				self.priortokennonnewline = None
 
-			print([t, self.priortoken, self.priortokennonnewline])
+			#print([t, self.priortoken, self.priortokennonnewline])
 
 			kls = type(self)
 			f = getattr(kls, t.name())
