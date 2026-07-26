@@ -313,7 +313,6 @@ class basicwiki:
 	def tokenize(txt):
 		"""Tokenize the string @txt into a list of tokens"""
 
-		print('Tokenize "%s"' % txt)
 		if not len(txt):
 			return []
 
@@ -366,14 +365,12 @@ class basicwiki:
 		elif k == 'link':
 			txt = r.group(1)
 			if r.group(2) and len(r.group(2)):
-				print(['---------------', r.group(2), '-------------'])
 				ret.append(__class__.linktxt( r.group(1),r.group(1)+r.group(2) ))
 			else:
 				ret.append(__class__.link( r.group(1) ))
 		elif k == 'linktxt':
 			txt = r.group(2)
 			if r.group(3) and len(r.group(3)):
-				print(['---------------', r.group(3), '-------------'])
 				txt += r.group(3)
 			ret.append(__class__.linktxt( r.group(1),r.group(2) ))
 
