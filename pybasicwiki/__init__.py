@@ -129,12 +129,10 @@ class HTMLFormatter:
 			return "<blockquote>"
 
 	def link(self, t):
-		print(['LINK', t])
 		r = self._linkresolver(t.link(), None)
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
 	def linktxt(self, t):
-		print(['LINKTXT', t])
 		mid = [self(_) for _ in t.text()]
 		r = self._linkresolver(t.link(), ''.join(mid))
 		return '<a href="%s">%s</a>' % (r[0], r[1])
