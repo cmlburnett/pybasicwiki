@@ -9,6 +9,8 @@ See [[/experiment|Experiments ''are'' fun]] page to '''start's cool''' an experi
 
 See [[/experiment|Experiments|300px]] page to start an experiment.
 
+Don't include [[links]]: with colon after them.
+
 : ''Indented [[Namespace:link]] italicized.''
 
 Bold with possession such as '''smore'es''' and stuff.

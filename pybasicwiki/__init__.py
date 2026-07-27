@@ -292,8 +292,8 @@ class basicwiki:
 		('bold', re.compile("""'''((?:[^']|'[^'])*?)'''""")),
 		('italic', re.compile("""''((?:[^']|'[^'])*?)''""")),
 		('hr', re.compile('^----$')),
-		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([\S]*)')),
-		('link', re.compile('\\[\\[([^\]]+)\\]\\]([\S]*)')),
+		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([a-zA-Z0-9]*)')),
+		('link', re.compile('\\[\\[([^\]]+)\\]\\]([a-zA-Z0-9]*)')),
 		# Any number of tildes will capture signature
 		('signature', re.compile('~{3,}')),
 		# Accept tabs only at the start of a line
@@ -314,17 +314,16 @@ class basicwiki:
 		final = []
 		lines = txt.split('\n')
 		for line in lines:
-			ret = __class__.tokenize(line)
+			ret = __class__.tokenize(line, True)
 			final += ret
 			final.append(__class__.newline())
 		final.append(__class__.EOL())
 
 		for t in final:
-			#print(t)
 			yield t
 
 	@staticmethod
-	def tokenize(txt):
+	def tokenize(txt, truestartofline=False):
 		"""Tokenize the string @txt into a list of tokens"""
 
 		if not len(txt):
@@ -332,10 +331,18 @@ class basicwiki:
 
 		ret = []
 
+		# Permit matching to these only if @truestartofline is True
+		startonly = ['ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'hr', 'tab']
+
 		# First first match on the line
 		first = None
 		for k,v in __class__.res:
 			r = v.search(txt)
+
+			# If not start of line, reject those that must be start of the line
+			if k in startonly and not truestartofline:
+				continue
+
 			if r:
 				if first is None:
 					first = (r, k, v)
