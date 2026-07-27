@@ -49,7 +49,7 @@ class HTMLFormatter:
 
 	def text(self, t):
 		# Text is striped of whitespace but one space back to separate from links, etc
-		return " " + t.text() + " "
+		return t.text()
 
 	def newline(self, t):
 		if isinstance(self.priortoken, basicwiki.newline):
@@ -61,26 +61,39 @@ class HTMLFormatter:
 			return "\n"
 
 	def italic(self, t):
-		return "<em>%s</em>" % t.text()
+		mid = [self(_) for _ in t.text()]
+		return "<em>%s</em>" % ''.join(mid)
 
 	def bold(self, t):
-		return "<b>%s</b>" % t.text()
+		mid = [self(_) for _ in t.text()]
+		return "<b>%s</b>" % ''.join(mid)
 
 	def bolditalic(self, t):
-		return "<em><b>%s</b></em>" % t.text()
+		mid = [self(_) for _ in t.text()]
+		return "<em><b>%s</b></em>" % ''.join(mid)
 
 	def hr(self, t):
 		return "<hr />"
 
-	def h1(self, t): return "<h1>%s</h1>" % t.text()
+	def h1(self, t):
+		mid = [self(_) for _ in t.text()]
+		return "<h1>%s</h1>" % ''.join(mid)
 
-	def h2(self, t): return "<h2>%s</h2>" % t.text()
+	def h2(self, t):
+		mid = [self(_) for _ in t.text()]
+		return "<h2>%s</h2>" % ''.join(mid)
 
-	def h3(self, t): return "<h3>%s</h3>" % t.text()
+	def h3(self, t):
+		mid = [self(_) for _ in t.text()]
+		return "<h3>%s</h3>" % ''.join(mid)
 
-	def h4(self, t): return "<h4>%s</h4>" % t.text()
+	def h4(self, t):
+		mid = [self(_) for _ in t.text()]
+		return "<h4>%s</h4>" % ''.join(mid)
 
-	def h5(self, t): return "<h5>%s</h5>" % t.text()
+	def h5(self, t):
+		mid = [self(_) for _ in t.text()]
+		return "<h5>%s</h5>" % ''.join(mid)
 
 	def ul(self, t):
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
@@ -116,11 +129,14 @@ class HTMLFormatter:
 			return "<blockquote>"
 
 	def link(self, t):
+		print(['LINK', t])
 		r = self._linkresolver(t.link(), None)
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
 	def linktxt(self, t):
-		r = self._linkresolver(t.link(), t.text())
+		print(['LINKTXT', t])
+		mid = [self(_) for _ in t.text()]
+		r = self._linkresolver(t.link(), ''.join(mid))
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
 	def signature(self, t):
@@ -144,7 +160,7 @@ class basicwiki:
 
 	class text:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "text(%s, %d)" % (self._text, len(self._text))
 		def __repr__(self): return str(self)
 		def name(self): return 'text'
@@ -152,7 +168,7 @@ class basicwiki:
 
 	class italic:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "italic(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'italic'
@@ -160,7 +176,7 @@ class basicwiki:
 
 	class bold:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "bold(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'bold'
@@ -168,7 +184,7 @@ class basicwiki:
 
 	class bolditalic:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "bolditalic(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'bolditalic'
@@ -176,7 +192,7 @@ class basicwiki:
 
 	class h1:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "h1(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h1'
@@ -184,7 +200,7 @@ class basicwiki:
 
 	class h2:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "h2(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h2'
@@ -192,7 +208,7 @@ class basicwiki:
 
 	class h3:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "h3(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h3'
@@ -200,7 +216,7 @@ class basicwiki:
 
 	class h4:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "h4(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h4'
@@ -208,7 +224,7 @@ class basicwiki:
 
 	class h5:
 		def __init__(self, txt):
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "h5(%s)" % self._text
 		def __repr__(self): return str(self)
 		def name(self): return 'h5'
@@ -226,7 +242,7 @@ class basicwiki:
 	class linktxt:
 		def __init__(self, url, txt):
 			self._url = url
-			self._text = txt.strip()
+			self._text = txt
 		def __str__(self): return "linktxt(%s,%s)" % (self._url, self._text)
 		def __repr__(self): return str(self)
 		def name(self): return 'linktxt'
@@ -337,42 +353,57 @@ class basicwiki:
 		k = first[1]
 		v = first[2]
 
+		rs = r.span()
+
 		# Get rest of line
-		pre = txt[0:r.span()[0]]
-		post = txt[r.span()[1]:]
+		pre = txt[0:rs[0]]
+		intra = r.group(1)
+		post = txt[rs[1]:]
 
 		# Everything before the token is text
 		ret.append(__class__.text(pre))
 
 		if k == 'italic':
-			ret.append(__class__.italic( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.italic(i))
 		elif k == 'bold':
-			ret.append(__class__.bold( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.bold(i))
 		elif k == 'bolditalic':
-			ret.append(__class__.bolditalic( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.bolditalic(i))
 		elif k == 'h1':
-			ret.append(__class__.h1( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.h1(i))
 		elif k == 'h2':
-			ret.append(__class__.h2( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.h2(i))
 		elif k == 'h3':
-			ret.append(__class__.h3( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.h3(i))
 		elif k == 'h4':
-			ret.append(__class__.h4( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.h4(i))
 		elif k == 'h5':
-			ret.append(__class__.h5( r.group(1) ))
+			i = __class__.tokenize(r.group(1))
+			ret.append(__class__.h5(i))
 		elif k == 'hr':
+			i = __class__.tokenize(r.group(1))
 			ret.append(__class__.hr())
 		elif k == 'link':
 			txt = r.group(1)
 			if r.group(2) and len(r.group(2)):
-				ret.append(__class__.linktxt( r.group(1),r.group(1)+r.group(2) ))
+				txt += r.group(2)
+				ret.append(__class__.linktxt( r.group(1), [__class__.text(txt)] ))
 			else:
 				ret.append(__class__.link( r.group(1) ))
 		elif k == 'linktxt':
 			txt = r.group(2)
 			if r.group(3) and len(r.group(3)):
 				txt += r.group(3)
-			ret.append(__class__.linktxt( r.group(1),r.group(2) ))
+
+			i = __class__.tokenize(txt)
+			ret.append(__class__.linktxt( r.group(1), i ))
 
 		elif k == 'ul':
 			ret.append(__class__.ul(len(r.group(1))))

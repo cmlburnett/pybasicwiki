@@ -5,11 +5,11 @@ txt = """==hi==\nTest\n\npa''rag''raph 2\n[[Link to something]] test\n----\n[[Li
 txt = """==About SensorBoard==
 SensorBoard is a system of [[device]]s to [[read]] calorimetry data and storage of all that data on a single server.
 
-See [[/experiment|Experiments]] page to '''start's cool''' an experiment.
+See [[/experiment|Experiments ''are'' fun]] page to '''start's cool''' an experiment.
 
 See [[/experiment|Experiments|300px]] page to start an experiment.
 
-:Indented
+: ''Indented [[Namespace:link]] italicized.''
 
 Bold with possession such as '''smore'es''' and stuff.
 
