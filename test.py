@@ -24,8 +24,13 @@ Items:
 ** Beef
 * Onions
 
+{{Info Box|noparametersjusttext|anothertextparameter}}
+
+{{Info Box|title=Hi|footer=[[Footer]]}}
 
 and more things at the end.
+
+~~~~
 """
 
 print(txt)
@@ -36,7 +41,15 @@ def link(href, text=None):
 	else:
 		return ("/wiki/something/%s" % href, text)
 
-f = HTMLFormatter(link)
+class TestHTMLFormatter(HTMLFormatter):
+	"""Need to subclass to test template and signature"""
+	def template(self, title, params):
+		return "{{%s | %s}}" % (title, str(params))
+
+	def signature(self, t):
+		return "~~~SIGNATURE~~~"
+
+f = TestHTMLFormatter(link)
 ret = bw.parseFormatter(txt, f)
 print('============================')
 print(ret)

@@ -6,9 +6,17 @@ class HTMLFormatter:
 		self.priortoken = None
 		self.priortokennonnewline = None
 
+		self._template = None
+		self._template_tokens = []
+
 	def __call__(self, t):
 		props = dir(self)
 		if t.name() in props:
+			# Within a template, so defer rendering to HTML until the end of the template is found
+			if self._template is not None and not isinstance(t, basicwiki.templateend):
+				self._template_tokens.append(t)
+				return ""
+
 			ret = ""
 
 			if isinstance(t, basicwiki.newline) and isinstance(self.priortoken, basicwiki.newline):
@@ -137,8 +145,57 @@ class HTMLFormatter:
 		r = self._linkresolver(t.link(), ''.join(mid))
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
+	def template(self, title, params):
+		raise NotImplementedError("Need to subclass this to handle templates")
+
 	def signature(self, t):
 		raise NotImplementedError("Need to subclass this to handle signatures")
+
+	def templatestart(self, t):
+		if self._template is not None:
+			raise ValueError("Attempted to template within a template, not supported (%s inside %s)" % (str(t), str(self._template)))
+		self._template = t
+
+		return "{{" + t.title()
+
+	def templateend(self, t):
+		kls = type(self)
+		props = dir(self)
+
+		if self._template is None:
+			raise ValueError("Found end of template but not within a template")
+
+		params = []
+		for tt in self._template_tokens:
+			if isinstance(tt, basicwiki.text):
+				if len(tt.text()) == 0:
+					continue
+
+				parts = tt.text().split("|")
+				for part in parts:
+					if '=' not in part:
+						if len(part):
+							params.append(part)
+					else:
+						k,v = part.split('=',1)
+						params.append( [k,v] )
+			else:
+				f = getattr(kls, tt.name())
+				x = f(self, tt)
+				if len(params) and type(params[-1]) == list:
+					params[-1][-1] = params[-1][-1] + x
+				else:
+					params.append(x)
+
+		# Template name/title
+		title = self._template.title()
+
+		# TODO: render all tokens since self._template as parameters to the template
+		self._template = None
+		self._template_tokens.clear()
+
+		# Render template by supplying the template name/title and its parameters provided
+		return self.template(title, params)
 
 class basicwiki:
 	class EOL:
@@ -277,6 +334,20 @@ class basicwiki:
 		def name(self): return "tab"
 		def level(self): return self._level
 
+	class templatestart:
+		def __init__(self, title):
+			self._title = title
+		def __str__(self): return "templatestart(%s)" % (self._title,)
+		def __repr__(self): return str(self)
+		def name(self): return "templatestart"
+		def title(self): return self._title
+
+	class templateend:
+		def __init__(self): pass
+		def __str__(self): return "templateend()"
+		def __repr__(self): return str(self)
+		def name(self): return "templateend"
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		# Accept ordered and unordered lists at the start of a line
@@ -291,10 +362,13 @@ class basicwiki:
 		('bolditalic', re.compile("""'''''((?:[^']|'[^'])*?)'''''""")),
 		('bold', re.compile("""'''((?:[^']|'[^'])*?)'''""")),
 		('italic', re.compile("""''((?:[^']|'[^'])*?)''""")),
-		('hr', re.compile('^----$')),
+		# At least four hyphens but any number is a horizontal rule
+		('hr', re.compile('^-{4,}$')),
 		('linktxt', re.compile('\\[\\[([^|\]]+)[|]([^\]]+)\\]\\]([a-zA-Z0-9]*)')),
 		('link', re.compile('\\[\\[([^\]]+)\\]\\]([a-zA-Z0-9]*)')),
-		# Any number of tildes will capture signature
+		('templatestart', re.compile('\{\{([a-zA-Z0-9_ ]+)')),
+		('templateend', re.compile('\}\}')),
+		# Any number of consecutive tildes will capture signature
 		('signature', re.compile('~{3,}')),
 		# Accept tabs only at the start of a line
 		('tab', re.compile('^(:{1,})')),
@@ -362,7 +436,10 @@ class basicwiki:
 
 		# Get rest of line
 		pre = txt[0:rs[0]]
-		intra = r.group(1)
+		if len(r.groups()) > 0:
+			intra = r.group(1)
+		else:
+			intra = None
 		post = txt[rs[1]:]
 
 		# Everything before the token is text
@@ -419,6 +496,11 @@ class basicwiki:
 
 		elif k == 'signature':
 			ret.append(__class__.signature())
+
+		elif k == 'templatestart':
+			ret.append(__class__.templatestart(r.group(1)))
+		elif k == 'templateend':
+			ret.append(__class__.templateend())
 
 		else:
 			raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))
