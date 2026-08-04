@@ -169,7 +169,8 @@ class HTMLFormatter:
 		props = dir(self)
 
 		if self._template is None:
-			raise ValueError("Found end of template but not within a template")
+			return "}}"
+			#raise ValueError("Found end of template but not within a template")
 
 		params = []
 		for tt in self._template_tokens:
