@@ -156,7 +156,7 @@ class HTMLFormatter:
 			raise ValueError("Attempted to template within a template, not supported (%s inside %s)" % (str(t), str(self._template)))
 		self._template = t
 
-		return "{{" + t.title()
+		return ""
 
 	def templateend(self, t):
 		kls = type(self)
