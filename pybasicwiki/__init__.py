@@ -173,17 +173,29 @@ class HTMLFormatter:
 
 				parts = tt.text().split("|")
 				for part in parts:
+					# It's just more text, not a new parameter
 					if '=' not in part:
-						if len(part):
+						if not len(part): continue
+
+						# If nothing there yet, just add it on as a string
+						if not len(params):
 							params.append(part)
+						else:
+							# If the last item is a string then concat
+							if type(params[-1]) == str:
+								params[-1] = params[-1] + part
+							# Otherwise it's a named parameter so add the text on to the parameter value
+							else:
+								params[-1][-1] += part
 					else:
+						# Add a named parameter
 						k,v = part.split('=',1)
 						params.append( [k,v] )
 			else:
 				f = getattr(kls, tt.name())
 				x = f(self, tt)
 				if len(params) and type(params[-1]) == list:
-					params[-1][-1] = params[-1][-1] + x
+					params[-1][-1] += x
 				else:
 					params.append(x)
 
