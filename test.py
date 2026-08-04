@@ -26,7 +26,7 @@ Items:
 
 {{Info Box|noparametersjusttext|anothertextparameter}}
 
-{{Info Box|title=Hi|footer=[[Footer]]}}
+{{Info Box|title=Hi|footer=[[Anterior STEMI|Anterior]], [[Lateral STEMI|Lateral]]}}
 
 and more things at the end.
 

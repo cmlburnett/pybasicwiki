@@ -9,11 +9,11 @@ class HTMLFormatter:
 		self._template = None
 		self._template_tokens = []
 
-	def __call__(self, t):
+	def __call__(self, t, ignoretemplate=False):
 		props = dir(self)
 		if t.name() in props:
 			# Within a template, so defer rendering to HTML until the end of the template is found
-			if self._template is not None and not isinstance(t, basicwiki.templateend):
+			if self._template is not None and not isinstance(t, basicwiki.templateend) and not ignoretemplate:
 				self._template_tokens.append(t)
 				return ""
 
@@ -69,38 +69,38 @@ class HTMLFormatter:
 			return "\n"
 
 	def italic(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<em>%s</em>" % ''.join(mid)
 
 	def bold(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<b>%s</b>" % ''.join(mid)
 
 	def bolditalic(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<em><b>%s</b></em>" % ''.join(mid)
 
 	def hr(self, t):
 		return "<hr />"
 
 	def h1(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<h1>%s</h1>" % ''.join(mid)
 
 	def h2(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<h2>%s</h2>" % ''.join(mid)
 
 	def h3(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<h3>%s</h3>" % ''.join(mid)
 
 	def h4(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<h4>%s</h4>" % ''.join(mid)
 
 	def h5(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		return "<h5>%s</h5>" % ''.join(mid)
 
 	def ul(self, t):
@@ -141,7 +141,7 @@ class HTMLFormatter:
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
 	def linktxt(self, t):
-		mid = [self(_) for _ in t.text()]
+		mid = [self(_, ignoretemplate=True) for _ in t.text()]
 		r = self._linkresolver(t.link(), ''.join(mid))
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
