@@ -43,10 +43,10 @@ def link(href, text=None):
 
 class TestHTMLFormatter(HTMLFormatter):
 	"""Need to subclass to test template and signature"""
-	def template(self, title, params):
+	def template(self, title, params, parserobj):
 		return "{{%s | %s}}" % (title, str(params))
 
-	def signature(self, t):
+	def signature(self, t, parserobj):
 		return "~~~SIGNATURE~~~"
 
 f = TestHTMLFormatter(link)

@@ -9,7 +9,13 @@ class HTMLFormatter:
 		self._template = None
 		self._template_tokens = []
 
-	def __call__(self, t, ignoretemplate=False):
+	def __call__(self, t, parserobj, ignoretemplate=False):
+		"""
+		Call when to form a token @t.
+		The parser object @parserobj is used when needing to recursively parse (eg, templates).
+		Provide @ignoretemplate as True when the token should just be processed even within a template; in fact, this is necessary when parsing tokens within the template overtwise everything gets double-stacked.
+		"""
+
 		props = dir(self)
 		if t.name() in props:
 			# Within a template, so defer rendering to HTML until the end of the template is found
@@ -34,7 +40,7 @@ class HTMLFormatter:
 
 			kls = type(self)
 			f = getattr(kls, t.name())
-			ret += f(self, t)
+			ret += f(self, t, parserobj)
 
 			# Save the prior token and prior non-newline token
 			self.priortoken = t
@@ -45,7 +51,7 @@ class HTMLFormatter:
 		else:
 			raise KeyError("Attempted to format token %s but no function found to format it" % t.name())
 
-	def eol(self, t):
+	def eol(self, t, parserobj):
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			return "</ul>"
 		elif isinstance(self.priortokennonnewline, basicwiki.ol):
@@ -55,11 +61,11 @@ class HTMLFormatter:
 		else:
 			return ""
 
-	def text(self, t):
+	def text(self, t, parserobj):
 		# Text is striped of whitespace but one space back to separate from links, etc
 		return t.text()
 
-	def newline(self, t):
+	def newline(self, t, parserobj):
 		if isinstance(self.priortoken, basicwiki.newline):
 			if isinstance(self.priortoken, basicwiki.newline):
 				return "<br />\n"
@@ -68,42 +74,42 @@ class HTMLFormatter:
 		else:
 			return "\n"
 
-	def italic(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def italic(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<em>%s</em>" % ''.join(mid)
 
-	def bold(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def bold(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<b>%s</b>" % ''.join(mid)
 
-	def bolditalic(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def bolditalic(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<em><b>%s</b></em>" % ''.join(mid)
 
-	def hr(self, t):
+	def hr(self, t, parserobj):
 		return "<hr />"
 
-	def h1(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def h1(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<h1>%s</h1>" % ''.join(mid)
 
-	def h2(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def h2(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<h2>%s</h2>" % ''.join(mid)
 
-	def h3(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def h3(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<h3>%s</h3>" % ''.join(mid)
 
-	def h4(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def h4(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<h4>%s</h4>" % ''.join(mid)
 
-	def h5(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def h5(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<h5>%s</h5>" % ''.join(mid)
 
-	def ul(self, t):
+	def ul(self, t, parserobj):
 		if isinstance(self.priortokennonnewline, basicwiki.ul):
 			if self.priortokennonnewline.level() == t.level():
 				return "</li><li>"
@@ -114,7 +120,7 @@ class HTMLFormatter:
 		else:
 			return "<ul>\n<li>"
 
-	def ol(self, t):
+	def ol(self, t, parserobj):
 		if isinstance(self.priortokennonnewline, basicwiki.ol):
 			if self.priortokennonnewline.level() == t.level():
 				return "<li>"
@@ -125,7 +131,7 @@ class HTMLFormatter:
 		else:
 			return "<ol>\n<li>"
 
-	def tab(self, t):
+	def tab(self, t, parserobj):
 		if isinstance(self.priortokennonnewline, basicwiki.tab):
 			if self.priortokennonnewline.level() == t.level():
 				return ""
@@ -136,29 +142,29 @@ class HTMLFormatter:
 		else:
 			return "<blockquote>"
 
-	def link(self, t):
+	def link(self, t, parserobj):
 		r = self._linkresolver(t.link(), None)
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
-	def linktxt(self, t):
-		mid = [self(_, ignoretemplate=True) for _ in t.text()]
+	def linktxt(self, t, parserobj):
+		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		r = self._linkresolver(t.link(), ''.join(mid))
 		return '<a href="%s">%s</a>' % (r[0], r[1])
 
-	def template(self, title, params):
+	def template(self, title, params, parserobj):
 		raise NotImplementedError("Need to subclass this to handle templates")
 
-	def signature(self, t):
+	def signature(self, t, parserobj):
 		raise NotImplementedError("Need to subclass this to handle signatures")
 
-	def templatestart(self, t):
+	def templatestart(self, t, parserobj):
 		if self._template is not None:
 			raise ValueError("Attempted to template within a template, not supported (%s inside %s)" % (str(t), str(self._template)))
 		self._template = t
 
 		return ""
 
-	def templateend(self, t):
+	def templateend(self, t, parserobj):
 		kls = type(self)
 		props = dir(self)
 
@@ -193,7 +199,7 @@ class HTMLFormatter:
 						params.append( [k,v] )
 			else:
 				f = getattr(kls, tt.name())
-				x = f(self, tt)
+				x = f(self, tt, parserobj)
 				if len(params) and type(params[-1]) == list:
 					params[-1][-1] += x
 				else:
@@ -207,7 +213,7 @@ class HTMLFormatter:
 		self._template_tokens.clear()
 
 		# Render template by supplying the template name/title and its parameters provided
-		return self.template(title, params)
+		return self.template(title, params, parserobj)
 
 class basicwiki:
 	class EOL:
@@ -390,7 +396,7 @@ class basicwiki:
 	def parseFormatter(txt, formatter):
 		ret = []
 		for t in __class__.parse(txt):
-			ret.append( formatter(t) )
+			ret.append( formatter(t, __class__) )
 
 		return "".join(ret)
 
