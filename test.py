@@ -50,7 +50,15 @@ class TestHTMLFormatter(HTMLFormatter):
 		return "~~~SIGNATURE~~~"
 
 f = TestHTMLFormatter(link)
-ret = bw.parseFormatter(txt, f)
+def token_analyzer(tokens):
+	# Modify token stream
+	tokens.append( bw.text("Tokens analyzed") )
+	tokens.append( bw.newline() )
+	tokens.append( bw.newline() )
+	print(tokens)
+	return tokens
+
+ret = bw.parseFormatter(txt, f, token_analyzer=token_analyzer)
 print('============================')
 print(ret)
 

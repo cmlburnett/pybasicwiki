@@ -394,12 +394,23 @@ class basicwiki:
 	]
 
 	@staticmethod
-	def parseFormatter(txt, formatter):
-		ret = []
+	def parseFormatter(txt, formatter, token_analyzer=None):
+		"""
+		Parse the wiki text @txt into tokens, then format each token with @formatter.
+		Prior to formatting, pass the tokens to the token analyzer @token_analyzer (can read, write, modify, prune, trim, delete, addend, etc the token stream) and must return a list of tokens.
+		"""
+		tokens = []
 		for t in __class__.parse(txt):
-			ret.append( formatter(t, __class__) )
+			tokens.append(t)
 
-		return "".join(ret)
+		if token_analyzer:
+			tokens = token_analyzer(tokens)
+			if tokens is None:
+				raise ValueError("Token analyzer %s did not return a list of tokens" % str(token_analyzer))
+
+		html = [formatter(t, __class__) for t in tokens]
+
+		return "".join(html)
 
 	@staticmethod
 	def parse(txt):
