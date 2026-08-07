@@ -216,6 +216,10 @@ class HTMLFormatter:
 		# Render template by supplying the template name/title and its parameters provided
 		return self.template(title, params, parserobj)
 
+	def tableofcontents(self, t, parserobj):
+		# Default is to not show anything
+		return ""
+
 class basicwiki:
 	class EOL:
 		def __str__(self): return "eol()"
@@ -367,6 +371,12 @@ class basicwiki:
 		def __repr__(self): return str(self)
 		def name(self): return "templateend"
 
+	class tableofcontents:
+		def __init__(self): pass
+		def __str__(self): return "tableofcontents"
+		def __repr__(self): return str(self)
+		def name(self): return "tableofcontents"
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		# Accept ordered and unordered lists at the start of a line
@@ -423,7 +433,13 @@ class basicwiki:
 			final.append(__class__.newline())
 		final.append(__class__.EOL())
 
+		found_first_header = False
 		for t in final:
+			# Find first header and inject a table of contents token
+			if not found_first_header:
+				if t.name() in ('h1','h2','h3','h4','h5'):
+					found_first_header = True
+					yield __class__.tableofcontents()
 			yield t
 
 	@staticmethod
