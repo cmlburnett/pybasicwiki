@@ -5,6 +5,8 @@ class HTMLFormatter:
 		self._linkresolver = linkresolver
 		self.priortoken = None
 		self.priortokennonnewline = None
+		self.hasseentablerow = False
+		self.hasseentablecells = False
 
 		self._template = None
 		self._template_tokens = []
@@ -46,6 +48,14 @@ class HTMLFormatter:
 			self.priortoken = t
 			if isinstance(t, basicwiki.ul) or isinstance(t, basicwiki.ol) or isinstance(t, basicwiki.tab):
 				self.priortokennonnewline = t
+
+			if isinstance(t, basicwiki.tablerow):
+				self.hasseentablerow = True
+				self.hasseentablecells = False
+			elif isinstance(t, basicwiki.tablecellth) or isinstance(t, basicwiki.tablecelltd):
+				self.hasseentablecells = True
+			elif isinstance(t, basicwiki.tableend):
+				self.hasseentablerow = False
 
 			return ret
 		else:
@@ -220,6 +230,70 @@ class HTMLFormatter:
 		# Default is to not show anything
 		return ""
 
+	def tablestart(self, t, parserobj):
+		attrs = t.attrs()
+		# TODO: parse this and escape appropriately
+
+		if attrs:
+			return "<table %s>" % attrs
+		else:
+			return "<table>"
+
+	def tablerow(self, t, parserobj):
+		ret = ""
+		if self.hasseentablecells:
+			if self._tablecell == 'th':
+				ret += "</th></tr>\n"
+			else:
+				ret += "</td></tr>\n"
+
+		elif self.hasseentablerow:
+			ret += "</tr>\n"
+
+		self.hasseentablecells = False
+
+		if t.attrs():
+			ret += "<tr %s>" % t.attrs()
+		else:
+			ret += "<tr>"
+
+		return ret
+
+	def tablecellth(self, t, parserobj):
+		if self.hasseentablecells:
+			if self._tablecell == 'th':
+				self._tablecell = 'th'
+				return "</th><th>"
+			else:
+				self._tablecell = 'th'
+				return "</th><td>"
+		else:
+			self._tablecell = 'th'
+			return "<th>"
+
+	def tablecelltd(self, t, parserobj):
+		if self.hasseentablecells:
+			if self._tablecell == 'th':
+				self._tablecell = 'td'
+				return "</th><td>"
+			else:
+				self._tablecell = 'td'
+				return "</th><td>"
+		else:
+			self._tablecell = 'td'
+			return "<td>"
+
+	def tableend (self, t, parserobj):
+		if self.hasseentablecells:
+			if self._tablecell == 'th':
+				return "</th></tr></table>"
+			else:
+				return "</td></tr></table>"
+		if self.hasseentablerow:
+			return "</tr></table>"
+		else:
+			return "</table>"
+
 class basicwiki:
 	class EOL:
 		def __str__(self): return "eol()"
@@ -377,6 +451,40 @@ class basicwiki:
 		def __repr__(self): return str(self)
 		def name(self): return "tableofcontents"
 
+	class tablestart:
+		def __init__(self, attrs):
+			self._attrs = attrs
+		def __str__(self): return "tablestart(%s)" % (self._attrs,)
+		def __repr__(self): return str(self)
+		def name(self): return "tablestart"
+		def attrs(self): return self._attrs
+
+	class tablerow:
+		def __init__(self, attrs):
+			self._attrs = attrs
+		def __str__(self): return "tablerow(%s)" % (self._attrs,)
+		def __repr__(self): return str(self)
+		def name(self): return "tablerow"
+		def attrs(self): return self._attrs
+
+	class tablecellth:
+		def __init__(self): pass
+		def __str__(self): return "tablecellth()"
+		def __repr__(self): return str(self)
+		def name(self): return "tablecellth"
+
+	class tablecelltd:
+		def __init__(self): pass
+		def __str__(self): return "tablecelltd()"
+		def __repr__(self): return str(self)
+		def name(self): return "tablecelltd"
+
+	class tableend:
+		def __init__(self): pass
+		def __str__(self): return "tableend()"
+		def __repr__(self): return str(self)
+		def name(self): return "tableend"
+
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		# Accept ordered and unordered lists at the start of a line
@@ -401,6 +509,12 @@ class basicwiki:
 		('signature', re.compile('~{3,}')),
 		# Accept tabs only at the start of a line
 		('tab', re.compile('^(:{1,})')),
+
+		('tablestart', re.compile("^\{\|(.*)$")),
+		('tablerow', re.compile("\|-(.*)$")),
+		('tablecellth', re.compile("!!")),
+		('tablecelltd', re.compile("\|\|")),
+		('tableend', re.compile("^\|\}$")),
 	]
 
 	@staticmethod
@@ -547,6 +661,17 @@ class basicwiki:
 			ret.append(__class__.templatestart(r.group(1)))
 		elif k == 'templateend':
 			ret.append(__class__.templateend())
+
+		elif k == 'tablestart':
+			ret.append(__class__.tablestart(r.group(1)))
+		elif k == 'tablerow':
+			ret.append(__class__.tablerow(r.group(1)))
+		elif k == 'tablecellth':
+			ret.append(__class__.tablecellth())
+		elif k == 'tablecelltd':
+			ret.append(__class__.tablecelltd())
+		elif k == 'tableend':
+			ret.append(__class__.tableend())
 
 		else:
 			raise ValueError("Unrecognized token name '%s' for '%s'" % (k, txt))

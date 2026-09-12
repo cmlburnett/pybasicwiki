@@ -24,6 +24,20 @@ Items:
 ** Beef
 * Onions
 
+{| class="prettytable"
+|-
+!! Meat !! Vegetable
+|-
+|| Beef || Lettuce
+|-
+|| Chicken || Corn
+|}
+
+Items:
+* Meat
+** [[Chicken]]
+** Beef
+
 {{Info Box|noparametersjusttext|anothertextparameter}}
 
 {{Info Box|title=Hi|footer=[[Anterior STEMI|Anterior]], [[Lateral STEMI|Lateral]]}}
