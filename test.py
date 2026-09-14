@@ -44,6 +44,8 @@ Items:
 ** [[Chicken]]
 ** Beef
 
+{{Main|EKG | Holter|Pacer}}
+
 {{Info Box|noparametersjusttext|anothertextparameter}}
 
 {{Info Box|title=Hi|footer=[[Anterior STEMI|Anterior]], [[Lateral STEMI|Lateral]]}}
