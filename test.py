@@ -17,6 +17,10 @@ Bold with possession such as '''smore'es''' and stuff.
 
 This line ==is not a heading== because equals does not span the whole line.
 
+\"\"\"
+Blockquote ''no italics''.
+\"\"\"
+
 Items:
 * Tacos
 * Meat

@@ -84,6 +84,9 @@ class HTMLFormatter:
 		else:
 			return "\n"
 
+	def blockquote(self, t, parserobj):
+		return "<blockquote />"
+
 	def italic(self, t, parserobj):
 		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
 		return "<em>%s</em>" % ''.join(mid)
@@ -305,6 +308,11 @@ class basicwiki:
 		def __repr__(self): return str(self)
 		def name(self): return 'newline'
 
+	class blockquote:
+		def __str__(self): return "blockquote()"
+		def __repr__(self): return str(self)
+		def name(self): return 'blockquote'
+
 	class hr:
 		def __str__(self): return "hr()"
 		def __repr__(self): return str(self)
@@ -488,6 +496,8 @@ class basicwiki:
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		# Accept ordered and unordered lists at the start of a line
+		('blockquote', re.compile('^"""$')),
+
 		('ul', re.compile('^(\*+)[ ]*')),
 		('ol', re.compile('^(\#+)[ ]*')),
 
@@ -541,10 +551,36 @@ class basicwiki:
 		"""Tokenize and generate tokens as a generator"""
 		final = []
 		lines = txt.split('\n')
+
+		# If true then don't tokenize until next blockquote makes it False
+		inblockquote = False
+
 		for line in lines:
 			ret = __class__.tokenize(line, True)
+
+			# The """ blockquote token is a special one that suspends tokenization until another """ is met
+			# If in a blockquote, the entire line is quoted directly without tokenization
+			# If not in a blockquote, it is passed on as is
+			if inblockquote:
+				if len(ret) and ret[0].name() == 'blockquote':
+					# End the block quote
+					inblockquote = False
+					ret.clear()
+				else:
+					# Add plain text to the blockquote
+					ret = [__class__.tab(1), __class__.text(line)]
+
+			else:
+				if len(ret) and ret[0].name() == 'blockquote':
+					inblockquote = True
+					ret.clear()
+				else:
+					# Regular tokenize string
+					pass
+
 			final += ret
 			final.append(__class__.newline())
+
 		final.append(__class__.EOL())
 
 		found_first_header = False
@@ -603,9 +639,13 @@ class basicwiki:
 		post = txt[rs[1]:]
 
 		# Everything before the token is text
-		ret.append(__class__.text(pre))
+		if len(pre):
+			ret.append(__class__.text(pre))
 
-		if k == 'italic':
+		if k == 'blockquote':
+			ret.append(__class__.blockquote())
+
+		elif k == 'italic':
 			i = __class__.tokenize(r.group(1))
 			ret.append(__class__.italic(i))
 		elif k == 'bold':
