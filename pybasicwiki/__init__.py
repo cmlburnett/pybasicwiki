@@ -528,7 +528,7 @@ class basicwiki:
 		('tab', re.compile('^(:{1,})')),
 
 		('tablestart', re.compile("^\{\|(.*)$")),
-		('tablerow', re.compile("\|-(.*)$")),
+		('tablerow', re.compile("^\|-(.*)$")),
 		('tablecellth', re.compile("!!")),
 		('tablecelltd', re.compile("\|\|")),
 		('tableend', re.compile("^\|\}$")),
