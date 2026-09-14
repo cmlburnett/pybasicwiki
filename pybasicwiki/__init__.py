@@ -565,9 +565,10 @@ class basicwiki:
 				if len(ret) and ret[0].name() == 'blockquote':
 					# End the block quote
 					inblockquote = False
+					final.append(__class__.newline())
 				else:
 					# Add plain text to the blockquote
-					ret = [__class__.tab(1), __class__.text(line + '\n')]
+					ret = [__class__.newline(), __class__.tab(1), __class__.text(line)]
 					final += ret
 
 			else:
