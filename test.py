@@ -19,6 +19,8 @@ This line ==is not a heading== because equals does not span the whole line.
 
 \"\"\"
 Blockquote ''no italics''.
+Second line.
+Third line.
 \"\"\"
 
 Items:
