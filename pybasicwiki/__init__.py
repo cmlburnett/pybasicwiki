@@ -84,8 +84,10 @@ class HTMLFormatter:
 		else:
 			return "\n"
 
-	def blockquote(self, t, parserobj):
-		return "<blockquote />"
+	def prestart(self, t, parserobj):
+		return "<pre>"
+	def preend(self, t, parserobj):
+		return "</pre>"
 
 	def italic(self, t, parserobj):
 		mid = [self(_, parserobj, ignoretemplate=True) for _ in t.text()]
@@ -308,10 +310,15 @@ class basicwiki:
 		def __repr__(self): return str(self)
 		def name(self): return 'newline'
 
-	class blockquote:
-		def __str__(self): return "blockquote()"
+	class prestart:
+		def __str__(self): return "prestart()"
 		def __repr__(self): return str(self)
-		def name(self): return 'blockquote'
+		def name(self): return 'prestart'
+
+	class preend:
+		def __str__(self): return "preend()"
+		def __repr__(self): return str(self)
+		def name(self): return 'preend'
 
 	class hr:
 		def __str__(self): return "hr()"
@@ -496,7 +503,7 @@ class basicwiki:
 	# Compile regular expressions in order of processing as some should be done in order
 	res = [
 		# Accept ordered and unordered lists at the start of a line
-		('blockquote', re.compile('^"""$')),
+		('pre', re.compile('^"""$')),
 
 		('ul', re.compile('^(\*+)[ ]*')),
 		('ol', re.compile('^(\#+)[ ]*')),
@@ -562,18 +569,21 @@ class basicwiki:
 			# If in a blockquote, the entire line is quoted directly without tokenization
 			# If not in a blockquote, it is passed on as is
 			if inblockquote:
-				if len(ret) and ret[0].name() == 'blockquote':
+				if len(ret) and ret[0].name() == 'prestart':
 					# End the block quote
 					inblockquote = False
+					final.append(__class__.preend())
 					final.append(__class__.newline())
 				else:
 					# Add plain text to the blockquote
-					ret = [__class__.text('\n'), __class__.tab(1), __class__.text(line)]
+					ret = [__class__.text(line + "\n")]
 					final += ret
 
 			else:
-				if len(ret) and ret[0].name() == 'blockquote':
+				if len(ret) and ret[0].name() == 'prestart':
 					inblockquote = True
+					final.append(__class__.prestart())
+					final.append(__class__.newline())
 				else:
 					# Regular tokenize string
 					final += ret
@@ -640,8 +650,8 @@ class basicwiki:
 		if len(pre):
 			ret.append(__class__.text(pre))
 
-		if k == 'blockquote':
-			ret.append(__class__.blockquote())
+		if k == 'pre':
+			ret.append(__class__.prestart())
 
 		elif k == 'italic':
 			i = __class__.tokenize(r.group(1))
