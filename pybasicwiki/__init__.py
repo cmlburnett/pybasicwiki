@@ -678,7 +678,7 @@ class basicwiki:
 			i = __class__.tokenize(r.group(1))
 			ret.append(__class__.h5(i))
 		elif k == 'hr':
-			i = __class__.tokenize(r.group(1))
+			i = __class__.tokenize(r.group(0))
 			ret.append(__class__.hr())
 		elif k == 'link':
 			txt = r.group(1)
