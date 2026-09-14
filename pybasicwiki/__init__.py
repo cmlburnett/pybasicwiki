@@ -565,21 +565,20 @@ class basicwiki:
 				if len(ret) and ret[0].name() == 'blockquote':
 					# End the block quote
 					inblockquote = False
-					ret.clear()
+					final += ret
 				else:
 					# Add plain text to the blockquote
 					ret = [__class__.tab(1), __class__.text(line)]
+					final += ret
 
 			else:
 				if len(ret) and ret[0].name() == 'blockquote':
 					inblockquote = True
-					ret.clear()
+					final += ret
 				else:
 					# Regular tokenize string
-					pass
-
-			final += ret
-			final.append(__class__.newline())
+					final += ret
+					final.append(__class__.newline())
 
 		final.append(__class__.EOL())
 
