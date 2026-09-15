@@ -217,6 +217,7 @@ class HTMLFormatter:
 
 		# Template name/title
 		title = self._template.title()
+		print(['template', title, params])
 
 		# TODO: render all tokens since self._template as parameters to the template
 		self._template = None
