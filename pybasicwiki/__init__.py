@@ -204,7 +204,7 @@ class HTMLFormatter:
 						# It's just more text, not a new parameter
 						if '=' not in part:
 							if not len(part): continue
-							params.append( [None, part] )
+							params.append( part )
 
 							# If nothing there yet, just add it on as a string
 							if not len(params):
