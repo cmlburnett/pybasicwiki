@@ -50,6 +50,31 @@ Items:
 
 {{Info Box|title=Hi|footer=[[Anterior STEMI|Anterior]], [[Lateral STEMI|Lateral]]}}
 
+{{Navbox
+|title=[[Pacemaker]]s
+|templatename=Navbox Pacemaker
+|labelwidth=150px
+|group1=Important Pages
+|list1=[[Theory of pacing]] • [[Pacemaker timing]] • [[Asynchronous pacing]]
+|group2=[[Pacing modes]]
+|list2=[[AAI]] • [[VVI]] • [[DDI]] • [[DDIR]] • [[VDD]] • [[DDD]] • [[DDDR]] • [[AOO]] • [[VOO]] • [[DOO]]
+|group3=EKG rhythms
+|list3=[[APR]] • [[VPR]] • [[AVDUAL]] • [[BIVP]] • [[LBBAP]] • [[DAPR]] • [[DVPR]]
+|group4=Types
+|list4=[[Transvenous pacemaker|Transvenous]] • [[Leadless pacemaker|Leadless]] • [[Temporary pacemaker|Temporary]] • [[Transcutaneous pacemaker|Transcutaneous]]
+|group5=Pacing timing
+|list5=[[Lower rate limit|LRL]] • [[Upper sensor rate|USR]] • [[Upper tracking rate|UTR]] • [[PVARP]]
+|group6=[[Pacemaker malfunction|Failures]]
+|list6=[[Failure to capture]] • [[Failure to sense]] • [[Undersensing]] • [[Oversensing]]
+|group7=[[Device interrogation|Interrogation]]
+|list7=[[Battery status]] • [[Presenting rhythm]] • [[Underlying rhythm]] • [[Arrhythmia log]] • Testing ([[Threshold]], [[Sensitivity]], [[Sensing]])
+|group8=Others
+|list8=[[Safety pacing]]
+|group10=Companies
+|list10=[[Abbott]]/St Jude • [[Biotronik]] • [[Boston Scientific]] • [[Medtronic]]
+}}
+
+
 and more things at the end.
 
 ~~~~

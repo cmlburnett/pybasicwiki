@@ -189,21 +189,37 @@ class HTMLFormatter:
 
 		params = []
 		for tt in self._template_tokens:
+			print(['tt', tt])
 			if isinstance(tt, basicwiki.text):
 				if len(tt.text()) == 0:
 					continue
 
-				parts = tt.text().split("|")
-				for part in parts:
-					# It's just more text, not a new parameter
-					if '=' not in part:
-						if not len(part): continue
+				if "|" not in tt.text():
+					params[-1][-1] += tt.text()
 
-						params.append( part )
-					else:
-						# Add a named parameter
-						k,v = part.split('=',1)
-						params.append( [k,v] )
+				else:
+					parts = tt.text().split("|")
+					print(['parts', parts])
+					for part in parts:
+						# It's just more text, not a new parameter
+						if '=' not in part:
+							if not len(part): continue
+							params.append( [None, part] )
+
+							# If nothing there yet, just add it on as a string
+							if not len(params):
+								params.append(part)
+							else:
+								# If the last item is a string then concat
+								if type(params[-1]) == str:
+									params[-1] = params[-1] + part
+								# Otherwise it's a named parameter so add the text on to the parameter value
+								else:
+									params[-1][-1] += part
+						else:
+							# Add a named parameter
+							k,v = part.split('=',1)
+							params.append( [k,v] )
 			else:
 				f = getattr(kls, tt.name())
 				x = f(self, tt, parserobj)
